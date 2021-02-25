@@ -1,4 +1,14 @@
-version: '3.4'
+version: '3.7'
+
+networks:
+  redis-cluster-net:
+    external:
+      name: redis-cluster-net
+  kafka:
+    external:
+      name: kafka
+  backend:
+    driver: ${NETWORKS_DRIVER}
 
 services:
   zoo1:
@@ -165,15 +175,15 @@ services:
       - "${MYSQL_PORT}:3306"
     networks:
       - backend
-  redis:
-    container_name: redis
-    build: ./redis
-    volumes:
-      - ${DATA_PATH_HOST}/redis:/data
-    ports:
-      - "${REDIS_PORT}:6379"
-    networks:
-      - backend
+#  redis:
+#    container_name: redis
+#    build: ./redis
+#    volumes:
+#      - ${DATA_PATH_HOST}/redis:/data
+#    ports:
+#      - "${REDIS_PORT}:6379"
+#    networks:
+#      - backend
   beanstalkd:
     build: ./beanstalkd
     container_name: beanstalk
@@ -198,9 +208,81 @@ services:
       - ${DATA_PATH_HOST}/rabbitmq:/var/lib/rabbitmq
     networks:
       - backend
-networks:
-  kafka:
-    external:
-      name: kafka
-  backend:
-    driver: ${NETWORKS_DRIVER}
+  redis-master-1:
+    image: redis:5.0.7
+    container_name: redis-master-1
+    command:
+      ["redis-server", "/home/redis/cluster/redis.conf"]
+    networks:
+        redis-cluster-net:
+            ipv4_address: 192.168.200.11
+    volumes:
+      - /Users/yanghao/works/docker/docker-cluster/redis-cluster/master/redis1.conf:/home/redis/cluster/redis.conf
+    ports:
+      - 7001:7001
+      - 17001:17001
+  redis-master-2:
+    image: redis:5.0.7
+    container_name: redis-master-2
+    command:
+      ["redis-server", "/home/redis/cluster/redis.conf"]
+    networks:
+      redis-cluster-net:
+        ipv4_address: 192.168.200.12
+    volumes:
+      - /Users/yanghao/works/docker/docker-cluster/redis-cluster/master/redis2.conf:/home/redis/cluster/redis.conf
+    ports:
+      - 7002:7002
+      - 17002:17002
+  redis-master-3:
+    image: redis:5.0.7
+    container_name: redis-master-3
+    command:
+      [ "redis-server", "/home/redis/cluster/redis.conf" ]
+    networks:
+      redis-cluster-net:
+        ipv4_address: 192.168.200.13
+    volumes:
+      - /Users/yanghao/works/docker/docker-cluster/redis-cluster/master/redis3.conf:/home/redis/cluster/redis.conf
+    ports:
+      - 7003:7003
+      - 17003:17003
+  redis-salve-1:
+    image: redis:5.0.7
+    container_name: redis-salve-1
+    command:
+      [ "redis-server", "/home/redis/cluster/redis.conf" ]
+    networks:
+      redis-cluster-net:
+        ipv4_address: 192.168.200.14
+    volumes:
+      - /Users/yanghao/works/docker/docker-cluster/redis-cluster/salve/redis1.conf:/home/redis/cluster/redis.conf
+    ports:
+      - 7004:7004
+      - 17004:17004
+  redis-salve-2:
+    image: redis:5.0.7
+    container_name: redis-salve-2
+    command:
+      [ "redis-server", "/home/redis/cluster/redis.conf" ]
+    networks:
+      redis-cluster-net:
+        ipv4_address: 192.168.200.15
+    volumes:
+      - /Users/yanghao/works/docker/docker-cluster/redis-cluster/salve/redis2.conf:/home/redis/cluster/redis.conf
+    ports:
+      - 7005:7005
+      - 17005:17005
+  redis-salve-3:
+    image: redis:5.0.7
+    container_name: redis-salve-3
+    command:
+      [ "redis-server", "/home/redis/cluster/redis.conf" ]
+    networks:
+      redis-cluster-net:
+        ipv4_address: 192.168.200.16
+    volumes:
+      - /Users/yanghao/works/docker/docker-cluster/redis-cluster/salve/redis3.conf:/home/redis/cluster/redis.conf
+    ports:
+      - 7006:7006
+      - 17006:17006
